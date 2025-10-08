@@ -11,19 +11,19 @@ $supabase_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 $table = 'email_otps';
 
 // ===============================
-// 📨 Receive data from app
+// 📩 Receive data from client/app
 // ===============================
 $data = json_decode(file_get_contents("php://input"), true);
 $email = $data["email"] ?? '';
 $otp = $data["otp"] ?? '';
 
 if (empty($email) || empty($otp)) {
-    echo json_encode(["status" => "error", "message" => "Missing fields"]);
+    echo json_encode(["status" => "error", "message" => "Missing email or OTP"]);
     exit;
 }
 
 // ===============================
-// 🔍 Verify OTP in Supabase
+// 🔍 Step 1: Find matching OTP
 // ===============================
 $url = "$supabase_url/rest/v1/$table?email=eq." . urlencode($email) . "&otp=eq." . urlencode($otp);
 $ch = curl_init($url);
@@ -47,15 +47,18 @@ if (empty($records)) {
 $record = $records[0];
 
 // ===============================
-// ⏳ Check if expired
+// ⏳ Step 2: Check expiration
 // ===============================
-if (strtotime($record["expires_at"]) < time()) {
-    echo json_encode(["status" => "error", "message" => "OTP expired"]);
+$current_time = time();
+$expiry_time = strtotime($record["expires_at"]);
+
+if ($current_time > $expiry_time) {
+    echo json_encode(["status" => "expired", "message" => "OTP expired. Please request a new one."]);
     exit;
 }
 
 // ===============================
-// ✅ Mark as verified
+// ✅ Step 3: Mark verified = true
 // ===============================
 $update_url = "$supabase_url/rest/v1/$table?email=eq." . urlencode($email);
 $payload = json_encode(["verified" => true]);
@@ -72,8 +75,12 @@ curl_setopt_array($ch, [
         "Prefer: return=representation"
     ]
 ]);
-curl_exec($ch);
+$update_response = curl_exec($ch);
 curl_close($ch);
 
-echo json_encode(["status" => "success", "message" => "Email verified successfully!"]);
+echo json_encode([
+    "status" => "success",
+    "message" => "Email verified successfully!",
+    "email" => $email
+]);
 ?>
