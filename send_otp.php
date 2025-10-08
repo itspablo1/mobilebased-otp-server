@@ -14,7 +14,7 @@ use PHPMailer\PHPMailer\Exception;
 $brevoHost = 'smtp-relay.brevo.com';
 $brevoPort = 587;
 $brevoUsername = '98cda6001@smtp-brevo.com'; // ← your Brevo account email
-$brevoPassword = 'xsmtpsib-dc7df805c089fdb6d7fb5f642f63040b1254ba101daa2329835aa78392915c7e-AFPwg27MWXda4G5K';
+$brevoPassword = '3RbCvP5T8BYKSx4Q';
 
 // ✅ Read JSON input
 $data = json_decode(file_get_contents("php://input"), true);
@@ -57,4 +57,5 @@ try {
     ]);
 }
 ?>
+
 
