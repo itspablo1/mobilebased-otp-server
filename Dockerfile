@@ -1,11 +1,20 @@
-# Use official PHP image
+# Use PHP with Apache
 FROM php:8.2-apache
 
-# Copy your PHP files into the container
+# Copy all files to web directory
 COPY . /var/www/html/
 
-# Expose port 10000 for Render
-EXPOSE 10000
+# Install required dependencies for PHPMailer
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
 
-# Start PHP built-in server on port 10000
-CMD ["php", "-S", "0.0.0.0:10000", "-t", "/var/www/html"]
+# Enable Apache rewrite
+RUN a2enmod rewrite
+
+# Set working directory
+WORKDIR /var/www/html/
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache server
+CMD ["apache2-foreground"]
